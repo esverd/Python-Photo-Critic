@@ -1,0 +1,269 @@
+<html><head>
+<meta charset="utf-8"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    :root {
+      --primary-color: #1978e5;
+      --secondary-color: #f3f4f6;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+    }
+    body {
+      font-family: 'Inter', "Noto Sans", sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 bg-white px-6 sm:px-10 py-3 shadow-sm">
+<div class="flex items-center gap-3 text-[var(--text-primary)]">
+<div class="size-7 text-[var(--primary-color)]">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_535)">
+<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+</g>
+<defs>
+<clipPath id="clip0_6_535">
+<rect fill="white" height="48" width="48"></rect>
+</clipPath>
+</defs>
+</svg>
+</div>
+<h1 class="text-xl font-semibold tracking-tight">PhotoReviewer</h1>
+</div>
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative flex-grow">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-sm text-[var(--text-secondary)]">search</span>
+</div>
+<input class="form-input block w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] bg-white placeholder:text-gray-400" placeholder="Search photos..." type="search"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--primary-color)] text-white hover:bg-blue-700 transition-colors">All</button>
+<button class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 text-[var(--text-primary)] hover:bg-gray-300 transition-colors">Approved</button>
+<button class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 text-[var(--text-primary)] hover:bg-gray-300 transition-colors">Rejected</button>
+<button class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 text-[var(--text-primary)] hover:bg-gray-300 transition-colors">Unreviewed</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Help" class="flex items-center justify-center rounded-full h-9 w-9 hover:bg-gray-100 text-[var(--text-secondary)] transition-colors">
+<span class="material-symbols-outlined text-xl">help</span>
+</button>
+</div>
+</header>
+<main class="px-4 sm:px-6 lg:px-8 xl:px-10 py-8 flex-1">
+<div class="layout-content-container max-w-7xl mx-auto">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-2">
+<div>
+<h2 class="text-[var(--text-primary)] text-3xl font-bold leading-tight">Photos</h2>
+<p class="text-[var(--text-secondary)] text-base font-normal">Review and manage your AI-analyzed photos.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-Uc30joU9mAWNF_m_JlmTNd_YEJnL4bhNNimocdmpb_sUmnbxKzOwe1W8zoE1RbMyq-Hr4yqMEfqS1bUcRx8bp7Ke7CHL8KYykgRRY4EvnQXh6pY91oXAckH7frFlJEL8ZdrcGRkwQqzxsv7F7DFfi1qcheEqlyeQFayO0JagPr5sDfVsKy4qG2DnmPmoXAYRsIwgVNTZXzVnlrONiabs6CHUPPW4hgcYuuUPQ4CWEUy6OaiYMFArSM82d8Hq0UPXtO0VWPsQeg");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 95</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Sunset over the mountains">Sunset over the mountains</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 95</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)] text-white">
+                    Approved
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD7BNm6NrTBj_IRjy80MeH_VlM0WSaQbt7k3PDF4AqgOMV0Co3l0xia_qDRQ574TPDltsjEjgtO35pDbAn6iBacfIGZwxXXiGJitbnKkuL-TkemPrzzt512DW3ev_039SLw-wSD_u1M3JPBvWkq0Mn_O5P1cPdO_SgJIh5WRaX99wXk-4IkGV65vR9_7lkgXTxzv9lq2gF-ofDAmhN7H7ClYApkOU8IyT_-npYKt2VVCX17Z52JFXZd_QUu_GZRhnuFDOOjkgishw");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 88</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="City skyline at night">City skyline at night</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 88</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-red)] text-white">
+                    Rejected
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAcaO1CdQQ1OETMJKuChnQ1BjG48ZUjV8cLUcs9QWRt35e81ghW2gpEMxc8R3JyMAf3nUGEece4U3O9DIjcnoeT__SioJeVOvl5cz78ltFdvz6Zxsts2MlzIINgy3EtQf3sUG-uh2xomDcElWzCTv4v_ypvuw_1mYsva_qRmkIFEvUlv_gj_tEaoQRBYZsomkt6hQwk9viGGqc0WC9nGUD3MUbgnKFtdMukAQ43BBG_Hk_WR78j9rcjpnfO-ggrGsgUfqiMbQ5jrg");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 92</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Portrait of a smiling woman">Portrait of a smiling woman</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 92</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)] text-white">
+                    Approved
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAJ_7PwV_1L1mERBltE2Bt2UQyDk1hsoGtvhhQP3Cr_rGLzOU9cs-tggx1lR7Sdllk4MAVb3KTdpQ-7mid48LnE4LzH63iLI-EW4MPVAXS2Lk2huzuem5APWG0jbJgAf1zVDQPNFFCnt2lKbEiccqM78TqHn4jTxb7ok0S5pKxoyVZq0wLAcyQV0AljQAGy2vft25jTAHL7SP-eXQw0G-z8THXBQd4v8O-0Qo8pbE-U9qr-gqG0jbObh5mlis6OOpV5DXUAm-cGTQ");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 85</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Beach with palm trees">Beach with palm trees</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 85</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-yellow)] text-gray-800">
+                    Unreviewed
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAE01KZyCHL9v8nHz8Bcq8Ljf3kCBkGVESCbdUsfteUP69Uoeft7MoTtMjVW3a1jAJ-gih5t6c1-vh9GHEZUddC0I-wa5QnCKvCHTvglr_Rn1-BC6QxNbZGDeRNym8CRkNuST71CRMUJGaVe9NSxotN-2HxhfHsIQQa4-8FL6-pmmP2WxWLp3swRfq76hBuVB7Qu0zJwcTGwKuLNP9KI25AUtSJDiW83jbeXQmAQTfeK58baL7SZOfl8YsCRhKWIMce1eNpemZf0Q");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 90</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Forest in autumn colors">Forest in autumn colors</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 90</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)] text-white">
+                    Approved
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDl4Pi2jFgv_j8ahE_wcI87EzSOanzFxeE4FhN2l9sfGAXqbwp1dOXYVpTn3PWPgNbmnOQShiEpvgoXQGEmYRcd1ZumCqN4HLE95CkJH-7bSXS9sywHrYQBiiNMUUwboWv6TWqEWKPJsgyQQOd86Y_4rZWkXoBeJW8qXUjaOC1pwjU77jO6Mxm2PG5Dz9ZwS_XLWyCKNM23TIy_3urbu_Kx08emqiczft59biLnknNA2gYoOfbUsqeRa3YljRe_WivnSB77RtmyVA");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 78</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Abstract art with vibrant colors">Abstract art with vibrant colors</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 78</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-red)] text-white">
+                    Rejected
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCm1by6QywtqAgAYsIF5uFePsAGqwhpvtQ6ofeeljE_SSYthZe2VZdXwn0rVL2iz7lOahYEJRM8F_2dBCBy3IdZ1b5C8IcJlpAoifxSRiFvSYS5k7djkoo268DuGKN2ONvZeTxMNC6VjBOU6myt1FqKdD1HTQQ--wVopcjQL5OQwSjPkNZjNZYkRmWomFPmlaLozZL5e5RvGbuVBgc3k75dTQWEr61CEnOj8oC9pxmQxoJCGaHmz2c4vnOjFShb6DjFwCeSL4EQxw");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 98</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Close-up of a flower">Close-up of a flower</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 98</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)] text-white">
+                    Approved
+                  </span>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group">
+<div class="relative">
+<div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8mNMY4oN2dbRl5KsZdM5dcrMVO4RG_FcfCJrkcRzaP9Eam2qTxlJMbweGMglsGNjB4gdvi7XvZ3vaDqmRFWeulSVZYfPdNYt4Sm_V_UiLMObtTegwCowfneAiHsusDNrXwaGEt47h05Fy61NAsOG6-0oiJl4dPweteLB7FNwHvNeQLIb9p65ta_MvIR-psnoGpD9atzUL6L4l_awVjWEYWtyqVoSxmnt3XYf14S8WgtkdhFed3qJLX4ElwuzWveT-vw2yNp2oFw");'></div>
+<div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: 82</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
+<button class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_up</span>
+</button>
+<button class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors">
+<span class="material-symbols-outlined text-xl">thumb_down</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="Snowy landscape with a cabin">Snowy landscape with a cabin</h3>
+<div class="flex items-center justify-between mt-2">
+<p class="text-[var(--text-secondary)] text-xs">Quality: 82</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-yellow)] text-gray-800">
+                    Unreviewed
+                  </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>
