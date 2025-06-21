@@ -13,6 +13,12 @@
     <header class="bg-white shadow-md sticky top-0 z-40"><div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">PhotoReviewer</h1></div><button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm">Save & Exit</button></div></header>
     <main class="flex-1 p-6"><div class="max-w-7xl mx-auto">
         <div class="mb-6"><h2 class="text-3xl font-bold">Photos</h2><p class="text-gray-500">Click a card for details or use hover actions. Click "Save & Exit" when done.</p></div>
+        <!-- FILTER BUTTONS -->
+        <div class="mb-6 flex gap-2" id="filter-container">
+            <button data-filter="all" class="filter-btn bg-blue-600 text-white px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">All</button>
+            <button data-filter="approved" class="filter-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Approved</button>
+            <button data-filter="rejected" class="filter-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Rejected</button>
+        </div>
         <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
     </div></main>
 </div>
@@ -45,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const card = document.getElementById(`card-${index}`);
         if (!card) return;
         imagesData[index].is_approved = isApproved;
+        card.dataset.approved = isApproved;
         const badge = card.querySelector('.status-badge');
         badge.textContent = isApproved ? 'Approved' : 'Rejected';
         badge.className = `status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${isApproved ? 'bg-green-500' : 'bg-red-500'}`;
@@ -78,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modalElements.prevBtn.disabled = currentImageIndex === 0;
         modalElements.nextBtn.disabled = currentImageIndex === imagesData.length - 1;
     }
-
+    
     function updateModalButtons(isApproved) {
         modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
         modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
@@ -99,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function createCard(image, index) {
         const card = document.createElement('div');
         card.id = `card-${index}`;
-        card.className = 'bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer';
+        card.className = 'image-card bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer';
+        card.dataset.approved = image.is_approved;
         card.innerHTML = `<div class="relative"><div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('/images/${image.filename}');"></div><div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">Avg Score: ${image.quality_score}</div><div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 flex justify-end gap-2"><button data-action="approve" class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_up</span></button><button data-action="reject" class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_down</span></button></div></div><div class="p-4 flex-grow flex flex-col"><h3 class="font-semibold truncate">${image.title || 'Untitled'}</h3><div class="flex items-center justify-between mt-auto pt-2"><p class="text-xs text-gray-500">Score: ${image.quality_score}</p><span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${image.is_approved ? 'bg-green-500' : 'bg-red-500'}">${image.is_approved ? 'Approved' : 'Rejected'}</span></div></div>`;
         card.addEventListener('click', (e) => {
             const action = e.target.closest('[data-action]')?.dataset.action;
@@ -108,13 +116,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         return card;
     }
-
+    
     imagesData.forEach((image, index) => photoGrid.appendChild(createCard(image, index)));
     modalElements.closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.add('hidden'); });
     modalElements.approveBtn.addEventListener('click', () => handleApproval(true, currentImageIndex));
     modalElements.rejectBtn.addEventListener('click', () => handleApproval(false, currentImageIndex));
     modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
     modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
+
+    document.getElementById('filter-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-btn')) {
+            const filter = e.target.dataset.filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+            });
+            e.target.classList.add('bg-blue-600', 'text-white');
+            e.target.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+
+            document.querySelectorAll('.image-card').forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    const isApproved = card.dataset.approved === 'true';
+                    if ((filter === 'approved' && isApproved) || (filter === 'rejected' && !isApproved)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
     
     document.getElementById('save-and-exit').addEventListener('click', async () => {
         const button = document.getElementById('save-and-exit');
