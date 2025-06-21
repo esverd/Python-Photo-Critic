@@ -4,7 +4,7 @@
     <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
     <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-    <title>Stitch Design</title>
+    <title>Photo Reviewer</title>
     <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style type="text/tailwindcss">
@@ -21,122 +21,167 @@
           font-family: 'Inter', "Noto Sans", sans-serif;
         }
         .material-symbols-outlined {
-          font-variation-settings:
-            'FILL' 0,
-            'wght' 400,
-            'GRAD' 0,
-            'opsz' 24
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for modal content */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
 <body class="bg-gray-100">
 <div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
     <div class="layout-container flex h-full grow flex-col">
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 bg-white px-6 sm:px-10 py-3 shadow-sm">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 bg-white px-6 sm:px-10 py-3 shadow-sm sticky top-0 z-40">
             <div class="flex items-center gap-3 text-[var(--text-primary)]">
-                <div class="size-7 text-[var(--primary-color)]">
-                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_6_535)"><path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path></g><defs><clipPath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
-                </div>
+                <div class="size-7 text-[var(--primary-color)]"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_6_535)"><path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path></g><defs><clipPath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg></div>
                 <h1 class="text-xl font-semibold tracking-tight">PhotoReviewer</h1>
             </div>
             <div class="flex items-center gap-4">
-                <button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-green)] text-white hover:bg-green-700 transition-colors">
-                    Save & Exit
-                </button>
+                <button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-green)] text-white hover:bg-green-700 transition-colors shadow-sm">Save & Exit</button>
             </div>
         </header>
-
         <main class="px-4 sm:px-6 lg:px-8 xl:px-10 py-8 flex-1">
             <div class="layout-content-container max-w-7xl mx-auto">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-2">
                     <div>
                         <h2 class="text-[var(--text-primary)] text-3xl font-bold leading-tight">Photos</h2>
-                        <p class="text-[var(--text-secondary)] text-base font-normal">Approve or reject the AI-selected photos. Your selections will be used in the next step.</p>
+                        <p class="text-[var(--text-secondary)] text-base font-normal">Click a card to see details. Approve or reject photos, then click "Save & Exit".</p>
                     </div>
                 </div>
                 <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    
                     {% for image in images %}
-                    <div id="card-{{ loop.index0 }}" class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group" data-filename="{{ image.filename }}" data-approved="{{ 'true' if image.is_approved else 'false' }}">
+                    <div id="card-{{ loop.index0 }}" class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer" 
+                         data-approved="{{ 'true' if image.is_approved else 'false' }}" 
+                         data-details='{{ image|tojson }}'>
                         <div class="relative">
-                            <div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("{{ image_dir.replace("\\", "/") }}/{{ image.filename }}");'></div>
+                            <div class="card-image-container w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("/images/{{ image.filename }}");'></div>
                             <div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: {{ image.quality_score }}</div>
                             <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
-                                <button class="approve-btn p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors" data-index="{{ loop.index0 }}">
-                                    <span class="material-symbols-outlined text-xl">thumb_up</span>
-                                </button>
-                                <button class="reject-btn p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors" data-index="{{ loop.index0 }}">
-                                    <span class="material-symbols-outlined text-xl">thumb_down</span>
-                                </button>
+                                <button class="approve-btn p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors" data-index="{{ loop.index0 }}"><span class="material-symbols-outlined text-xl">thumb_up</span></button>
+                                <button class="reject-btn p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors" data-index="{{ loop.index0 }}"><span class="material-symbols-outlined text-xl">thumb_down</span></button>
                             </div>
                         </div>
-                        <div class="p-4">
+                        <div class="p-4 flex-grow flex flex-col">
                             <h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="{{ image.title }}">{{ image.title or 'Untitled' }}</h3>
-                            <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center justify-between mt-auto pt-2">
                                 <p class="text-[var(--text-secondary)] text-xs">Score: {{ image.quality_score }}</p>
-                                {% if image.is_approved %}
-                                <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)] text-white">Approved</span>
-                                {% else %}
-                                <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-red)] text-white">Rejected</span>
-                                {% endif %}
+                                <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ 'bg-[var(--accent-green)]' if image.is_approved else 'bg-[var(--accent-red)]' }} text-white">{{ 'Approved' if image.is_approved else 'Rejected' }}</span>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
-                    </div>
+                </div>
             </div>
         </main>
     </div>
 </div>
 
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 id="modal-title" class="text-xl font-semibold text-[var(--text-primary)]">Image Details</h3>
+            <button id="modal-close-btn" class="p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-y-hidden">
+            <div class="w-full md:w-1/2 flex-shrink-0">
+                <img id="modal-image" src="" alt="Selected image" class="w-full h-full object-contain rounded-md bg-gray-100"/>
+            </div>
+            <div class="w-full md:w-1/2 flex flex-col min-h-0">
+                <div class="modal-content overflow-y-auto pr-2 space-y-4">
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Summary</h4>
+                        <p id="modal-summary" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Objective Description</h4>
+                        <p id="modal-description" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Critical Assessment</h4>
+                        <p id="modal-assessment" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Store the initial state of all images
         let imagesData = {{ images|tojson }};
+        const modal = document.getElementById('detail-modal');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
 
-        // Function to update the visual status of a card
         function updateCardStatus(index, isApproved) {
             const card = document.getElementById(`card-${index}`);
             const badge = card.querySelector('.status-badge');
-            
             card.dataset.approved = isApproved;
-            
-            if (isApproved) {
-                badge.textContent = 'Approved';
-                badge.classList.remove('bg-[var(--accent-red)]');
-                badge.classList.add('bg-[var(--accent-green)]');
-            } else {
-                badge.textContent = 'Rejected';
-                badge.classList.remove('bg-[var(--accent-green)]');
-                badge.classList.add('bg-[var(--accent-red)]');
-            }
+            badge.textContent = isApproved ? 'Approved' : 'Rejected';
+            badge.className = `status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${isApproved ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`;
         }
 
-        // Add event listeners for all approve buttons
-        document.querySelectorAll('.approve-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const index = button.dataset.index;
-                imagesData[index].is_approved = true;
-                updateCardStatus(index, true);
-            });
+        function openModal(image) {
+            document.getElementById('modal-image').src = `/images/${image.filename}`;
+            document.getElementById('modal-title').textContent = image.title || 'Untitled';
+            document.getElementById('modal-summary').textContent = image.summary || 'No summary available.';
+            document.getElementById('modal-description').textContent = image.image_description || 'No description available.';
+            document.getElementById('modal-assessment').textContent = image.critical_assessment || 'No assessment available.';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('photo-grid').addEventListener('click', (event) => {
+            const card = event.target.closest('.group[data-details]');
+            if (card) {
+                const approveBtn = event.target.closest('.approve-btn');
+                const rejectBtn = event.target.closest('.reject-btn');
+                
+                if (approveBtn) {
+                    const index = approveBtn.dataset.index;
+                    imagesData[index].is_approved = true;
+                    updateCardStatus(index, true);
+                } else if (rejectBtn) {
+                    const index = rejectBtn.dataset.index;
+                    imagesData[index].is_approved = false;
+                    updateCardStatus(index, false);
+                } else {
+                    const details = JSON.parse(card.dataset.details);
+                    openModal(details);
+                }
+            }
         });
 
-        // Add event listeners for all reject buttons
-        document.querySelectorAll('.reject-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const index = button.dataset.index;
-                imagesData[index].is_approved = false;
-                updateCardStatus(index, false);
-            });
+        modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
         });
 
-        // Handle the "Save & Exit" button click
         document.getElementById('save-and-exit').addEventListener('click', async () => {
-            // Filter for only the approved images
+            const button = document.getElementById('save-and-exit');
+            button.disabled = true;
+            button.textContent = 'Saving...';
+
             const approvedImages = imagesData.filter(img => img.is_approved);
             
             try {
-                // Send the approved images list to the server
                 const saveResponse = await fetch('/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -144,20 +189,22 @@
                 });
 
                 if (saveResponse.ok) {
-                    // If save was successful, tell the server to shut down
+                    button.textContent = 'Done!';
                     await fetch('/shutdown', { method: 'POST' });
-                    // Close the window/tab after a short delay
                     setTimeout(() => window.close(), 500);
                 } else {
                     alert('Error saving selection. Please check the console.');
+                    button.disabled = false;
+                    button.textContent = 'Save & Exit';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while trying to save and exit.');
+                alert('An error occurred. The server might have shut down. You can close this tab.');
+                button.disabled = false;
+                button.textContent = 'Save & Exit';
             }
         });
     });
 </script>
-
 </body>
 </html>
