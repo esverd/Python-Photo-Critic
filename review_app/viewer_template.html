@@ -13,11 +13,10 @@
     <header class="bg-white shadow-md sticky top-0 z-40"><div class="max-w-7xl mx-auto px-6 py-3 flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">Photo Assessment Viewer</h1></div></header>
     <main class="flex-1 p-6"><div class="max-w-7xl mx-auto"><div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div></div></main>
 </div>
-<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"><div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative"><button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button><div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden"><div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center"><div class="mb-4 text-center"><h3 id="modal-title" class="text-xl font-semibold"></h3><div id="modal-approval-status" class="text-lg font-bold mt-1"></div></div><div class="w-full h-full flex items-center justify-center"><img id="modal-image" src="" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/></div></div><div class="w-full md:w-1/2 flex flex-col min-h-0"><div class="mb-4 flex justify-end"><div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-600">AI Score: <span id="modal-score" class="ml-1 font-bold"></span></div></div><div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 border-t pt-4"><div><h4 class="font-bold text-lg">Overall Impression</h4><p id="modal-overall-impression" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div><div><h4 class="font-bold text-lg mt-4">Critical Assessment</h4><p id="modal-assessment" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div><div><h4 class="font-bold text-lg mt-4">Objective Description</h4><p id="modal-description" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div></div></div></div></div></div>
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"><div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative"><button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button><div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden"><div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center"><div class="mb-4 text-center"><h3 id="modal-title" class="text-xl font-semibold"></h3><div id="modal-approval-status" class="text-lg font-bold mt-1"></div></div><div class="w-full h-full flex items-center justify-center"><img id="modal-image" src="" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/></div></div><div class="w-full md:w-1/2 flex flex-col min-h-0"><div class="mb-4 flex justify-end"><div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-600">Avg Score: <span id="modal-score" class="ml-1 font-bold"></span></div></div><div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 border-t pt-4"><div><h4 class="font-bold text-lg">Overall Impression</h4><p id="modal-overall-impression" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div><div><h4 class="font-bold text-lg mt-4">Critical Assessment</h4><p id="modal-assessment" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div><div><h4 class="font-bold text-lg mt-4">Objective Description</h4><p id="modal-description" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div></div></div></div></div></div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // This is the placeholder that the Python script will replace.
-        const imagesData = '{{images_json_data}}'; 
+        const imagesData = {{images_json_data}};
         const grid = document.getElementById('photo-grid');
         const modal = document.getElementById('detail-modal');
         const modalElements = { closeBtn: document.getElementById('modal-close-btn'), image: document.getElementById('modal-image'), title: document.getElementById('modal-title'), score: document.getElementById('modal-score'), approvalStatus: document.getElementById('modal-approval-status'), overallImpression: document.getElementById('modal-overall-impression'), assessment: document.getElementById('modal-assessment'), description: document.getElementById('modal-description') };
@@ -35,7 +34,7 @@
         }
 
         function openModal(image) {
-            modalElements.image.src = image.filename; // Images are local
+            modalElements.image.src = image.filename;
             modalElements.title.textContent = image.title || 'Untitled';
             modalElements.score.textContent = image.quality_score;
             modalElements.description.textContent = image.image_description || 'N/A';
@@ -51,19 +50,7 @@
         function createCard(image) {
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer';
-            card.innerHTML = `
-                <div class="relative">
-                    <div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('${image.filename}');"></div>
-                    <div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: ${image.quality_score}</div>
-                </div>
-                <div class="p-4 flex-grow flex flex-col">
-                    <h3 class="text-gray-800 text-base font-semibold truncate">${image.title || 'Untitled'}</h3>
-                    <div class="flex items-center justify-between mt-auto pt-2">
-                        <p class="text-gray-500 text-xs">Score: ${image.quality_score}</p>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${image.is_approved ? 'bg-green-500' : 'bg-red-500'}">${image.is_approved ? 'Approved' : 'Rejected'}</span>
-                    </div>
-                </div>
-            `;
+            card.innerHTML = `<div class="relative"><div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('${image.filename}');"></div><div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">Avg Score: ${image.quality_score}</div></div><div class="p-4 flex-grow flex flex-col"><h3 class="font-semibold truncate">${image.title || 'Untitled'}</h3><div class="flex items-center justify-between mt-auto pt-2"><p class="text-xs text-gray-500">Score: ${image.quality_score}</p><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${image.is_approved ? 'bg-green-500' : 'bg-red-500'}">${image.is_approved ? 'Approved' : 'Rejected'}</span></div></div>`;
             card.addEventListener('click', () => openModal(image));
             return card;
         }

@@ -9,7 +9,7 @@ if len(sys.argv) != 3:
     sys.exit(1)
 
 TEMP_DATA_PATH = sys.argv[1]
-IMAGE_DIR_PATH = os.path.abspath(sys.argv[2]) # Use absolute path for robustness
+IMAGE_DIR_PATH = os.path.abspath(sys.argv[2])
 
 app = Flask(__name__, template_folder='.')
 app.config['IMAGE_DIR'] = IMAGE_DIR_PATH
@@ -32,23 +32,22 @@ def index():
 
 @app.route('/save', methods=['POST'])
 def save_selection():
-    final_selection = request.json.get('approved_images', [])
+    # Use the correct key 'saved_images' to match the front-end
+    final_selection = request.json.get('saved_images', [])
     final_selection_path = os.path.join(os.path.dirname(TEMP_DATA_PATH), "final_selection.json")
     with open(final_selection_path, 'w', encoding='utf-8') as f:
         json.dump(final_selection, f, indent=2)
-    print(f"✅ {len(final_selection)} images approved and saved to {final_selection_path}")
+    print(f"✅ {len(final_selection)} image statuses saved to {final_selection_path}")
     return jsonify({"status": "success", "message": "Selection saved."})
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    print("Server shutting down...")
+        return 'Server shutting down...'
     func()
     return 'Server is shutting down...'
 
 if __name__ == '__main__':
     print(f"Starting Flask server for photo review at http://127.0.0.1:5000")
-    print(f"Serving images from: {app.config['IMAGE_DIR']}")
     app.run(host='127.0.0.1', port=5000, debug=False)

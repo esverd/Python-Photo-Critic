@@ -3,250 +3,135 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     <title>Photo Reviewer</title>
-    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <style type="text/tailwindcss">
-        :root {
-          --primary-color: #1978e5;
-          --secondary-color: #f3f4f6;
-          --text-primary: #1f2937;
-          --text-secondary: #6b7280;
-          --accent-green: #10b981;
-          --accent-red: #ef4444;
-          --accent-yellow: #f59e0b;
-        }
-        body {
-          font-family: 'Inter', "Noto Sans", sans-serif;
-        }
-        .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .modal-content::-webkit-scrollbar { width: 8px; }
-        .modal-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .modal-content::-webkit-scrollbar-thumb { background: #a8a8a8; border-radius: 4px; }
-        .modal-content::-webkit-scrollbar-thumb:hover { background: #888; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <style>:root{--primary-color:#1978e5;--secondary-color:#f3f4f6;--text-primary:#1f2937;--text-secondary:#6b7280;--accent-green:#10b981;--accent-red:#ef4444;}body{font-family:'Inter',sans-serif;}.material-symbols-outlined{font-variation-settings:'FILL'0,'wght'400,'GRAD'0,'opsz'24}.modal-content::-webkit-scrollbar{width:8px}.modal-content::-webkit-scrollbar-track{background:#f1f1f1;border-radius:4px}.modal-content::-webkit-scrollbar-thumb{background:#a8a8a8;border-radius:4px}.modal-content::-webkit-scrollbar-thumb:hover{background:#888}</style>
 </head>
 <body class="bg-gray-100">
-<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
-    <div class="layout-container flex h-full grow flex-col">
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 bg-white px-6 sm:px-10 py-3 shadow-sm sticky top-0 z-40">
-            <div class="flex items-center gap-3 text-[var(--text-primary)]">
-                <div class="size-7 text-[var(--primary-color)]"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_6_535)"><path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path></g><defs><clipPath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg></div>
-                <h1 class="text-xl font-semibold tracking-tight">PhotoReviewer</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-green)] text-white hover:bg-green-700 transition-colors shadow-sm">Save & Exit</button>
-            </div>
-        </header>
-        <main class="px-4 sm:px-6 lg:px-8 xl:px-10 py-8 flex-1">
-            <div class="layout-content-container max-w-7xl mx-auto">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-2">
-                    <div>
-                        <h2 class="text-[var(--text-primary)] text-3xl font-bold leading-tight">Photos</h2>
-                        <p class="text-[var(--text-secondary)] text-base font-normal">Click a card for details or use hover actions. Click "Save & Exit" when done.</p>
-                    </div>
-                </div>
-                <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    {% for image in images %}
-                    <div id="card-{{ loop.index0 }}" class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer"
-                         data-approved="{{ 'true' if image.is_approved else 'false' }}"
-                         data-index="{{ loop.index0 }}"
-                         data-details='{{ image|tojson }}'>
-                        <div class="relative">
-                            <div class="card-image-container w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("/images/{{ image.filename }}");'></div>
-                            <div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: {{ image.quality_score }}</div>
-                            <!-- RESTORED HOVER BUTTONS -->
-                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
-                                <button class="approve-btn p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors" data-action="approve"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_up</span></button>
-                                <button class="reject-btn p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors" data-action="reject"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_down</span></button>
-                            </div>
-                        </div>
-                        <div class="p-4 flex-grow flex flex-col">
-                            <h3 class="text-[var(--text-primary)] text-base font-semibold truncate" title="{{ image.title }}">{{ image.title or 'Untitled' }}</h3>
-                            <div class="flex items-center justify-between mt-auto pt-2">
-                                <p class="text-[var(--text-secondary)] text-xs">Score: {{ image.quality_score }}</p>
-                                <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ 'bg-[var(--accent-green)]' if image.is_approved else 'bg-[var(--accent-red)]' }} text-white">{{ 'Approved' if image.is_approved else 'Rejected' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </main>
-    </div>
+<div class="flex flex-col min-h-screen">
+    <header class="bg-white shadow-md sticky top-0 z-40"><div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">PhotoReviewer</h1></div><button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm">Save & Exit</button></div></header>
+    <main class="flex-1 p-6"><div class="max-w-7xl mx-auto">
+        <div class="mb-6"><h2 class="text-3xl font-bold">Photos</h2><p class="text-gray-500">Click a card for details or use hover actions. Click "Save & Exit" when done.</p></div>
+        <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+    </div></main>
 </div>
-
-<!-- MODAL DIALOG -->
-<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative">
-        <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200 transition-colors"><span class="material-symbols-outlined">close</span></button>
-        <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-symbols-outlined">arrow_back_ios</span></button>
-        <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
-
-        <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
-            <div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center">
-                <div class="mb-4 text-center">
-                    <h3 id="modal-title" class="text-xl font-semibold text-[var(--text-primary)]"></h3>
-                    <div id="modal-approval-status" class="text-lg font-bold mt-1"></div>
-                </div>
-                <div class="w-full h-full flex items-center justify-center">
-                    <img id="modal-image" src="" alt="Selected image" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/>
-                </div>
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"><div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative">
+    <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button>
+    <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_back_ios</span></button>
+    <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
+    <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
+        <div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center"><div class="mb-4 text-center"><h3 id="modal-title" class="text-xl font-semibold"></h3><div id="modal-approval-status" class="text-lg font-bold mt-1"></div></div><div class="w-full h-full flex items-center justify-center"><img id="modal-image" src="" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/></div></div>
+        <div class="w-full md:w-1/2 flex flex-col min-h-0">
+            <div class="mb-4 flex justify-end"><div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-600">Avg Score: <span id="modal-score" class="ml-1 font-bold"></span></div></div>
+            <div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 border-t pt-4">
+                <div><h4 class="font-bold text-lg">Overall Impression</h4><p id="modal-overall-impression" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div>
+                <div><h4 class="font-bold text-lg mt-4">Critical Assessment</h4><p id="modal-assessment" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div>
+                <div><h4 class="font-bold text-lg mt-4">Objective Description</h4><p id="modal-description" class="text-sm text-gray-600 whitespace-pre-wrap"></p></div>
             </div>
-            <div class="w-full md:w-1/2 flex flex-col min-h-0">
-                <div class="mb-4 flex justify-end">
-                    <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-[var(--primary-color)]">AI Score: <span id="modal-score" class="ml-1 font-bold"></span></div>
-                </div>
-                <div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 border-t pt-4">
-                    <div><h4 class="font-bold text-lg text-[var(--text-primary)]">Overall Impression</h4><p id="modal-overall-impression" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p></div>
-                    <div><h4 class="font-bold text-lg text-[var(--text-primary)]">Critical Assessment</h4><p id="modal-assessment" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p></div>
-                    <div><h4 class="font-bold text-lg text-[var(--text-primary)]">Objective Description</h4><p id="modal-description" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p></div>
-                </div>
-                <div class="mt-4 flex-shrink-0 flex justify-end gap-2">
-                    <button id="modal-approve-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-green)] text-white hover:bg-green-700 transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_up</span> Approve</button>
-                    <button id="modal-reject-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-red)] text-white hover:bg-red-700 transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_down</span> Reject</button>
-                </div>
-            </div>
+            <div class="mt-4 flex-shrink-0 flex justify-end gap-2"><button id="modal-approve-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_up</span>Approve</button><button id="modal-reject-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-red-500 text-white hover:bg-red-600 shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_down</span>Reject</button></div>
         </div>
     </div>
 </div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let imagesData = {{ images|tojson }};
-        const modal = document.getElementById('detail-modal');
-        const modalElements = { closeBtn: document.getElementById('modal-close-btn'), image: document.getElementById('modal-image'), title: document.getElementById('modal-title'), score: document.getElementById('modal-score'), approvalStatus: document.getElementById('modal-approval-status'), overallImpression: document.getElementById('modal-overall-impression'), assessment: document.getElementById('modal-assessment'), description: document.getElementById('modal-description'), prevBtn: document.getElementById('modal-prev-btn'), nextBtn: document.getElementById('modal-next-btn'), approveBtn: document.getElementById('modal-approve-btn'), rejectBtn: document.getElementById('modal-reject-btn') };
-        const photoGrid = document.getElementById('photo-grid');
-        let currentImageIndex = -1;
+document.addEventListener('DOMContentLoaded', function () {
+    let imagesData = {{ images|tojson }};
+    const photoGrid = document.getElementById('photo-grid');
+    const modal = document.getElementById('detail-modal');
+    const modalElements = { closeBtn: document.getElementById('modal-close-btn'), image: document.getElementById('modal-image'), title: document.getElementById('modal-title'), approvalStatus: document.getElementById('modal-approval-status'), score: document.getElementById('modal-score'), overallImpression: document.getElementById('modal-overall-impression'), assessment: document.getElementById('modal-assessment'), description: document.getElementById('modal-description'), approveBtn: document.getElementById('modal-approve-btn'), rejectBtn: document.getElementById('modal-reject-btn'), prevBtn: document.getElementById('modal-prev-btn'), nextBtn: document.getElementById('modal-next-btn') };
+    let currentImageIndex = -1;
 
-        function updateCardStatus(index, isApproved) {
-            const card = document.getElementById(`card-${index}`);
-            if (!card) return;
-            card.dataset.approved = isApproved;
-            const badge = card.querySelector('.status-badge');
-            badge.textContent = isApproved ? 'Approved' : 'Rejected';
-            badge.className = `status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${isApproved ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`;
+    function updateCardStatus(index, isApproved) {
+        const card = document.getElementById(`card-${index}`);
+        if (!card) return;
+        imagesData[index].is_approved = isApproved;
+        const badge = card.querySelector('.status-badge');
+        badge.textContent = isApproved ? 'Approved' : 'Rejected';
+        badge.className = `status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${isApproved ? 'bg-green-500' : 'bg-red-500'}`;
+    }
+
+    function parseAssessment(text) {
+        if (!text || typeof text !== 'string') return { impression: 'N/A', assessment: 'N/A' };
+        const marker = 'Overall Impression:';
+        const index = text.toUpperCase().indexOf(marker.toUpperCase());
+        if (index !== -1) {
+            const impression = text.substring(index + marker.length).trim();
+            const assessment = text.substring(0, index).trim();
+            return { impression: impression || 'N/A', assessment: assessment || 'N/A' };
         }
+        return { impression: 'See full assessment below.', assessment: text };
+    }
 
-        // ROBUST PARSING FUNCTION
-        function parseAssessment(assessmentText) {
-            if (!assessmentText || typeof assessmentText !== 'string') {
-                return { impression: 'N/A', assessment: 'N/A' };
-            }
-            const impressionMarker = 'Overall Impression:';
-            const impressionIndex = assessmentText.indexOf(impressionMarker);
+    function openModal(index) {
+        currentImageIndex = parseInt(index);
+        const image = imagesData[currentImageIndex];
+        modalElements.image.src = `/images/${image.filename}`;
+        modalElements.title.textContent = image.title || 'Untitled';
+        modalElements.score.textContent = image.quality_score;
+        modalElements.description.textContent = image.image_description || 'N/A';
+        const { impression, assessment } = parseAssessment(image.critical_assessment);
+        modalElements.overallImpression.textContent = impression;
+        modalElements.assessment.textContent = assessment;
+        updateModalButtons(image.is_approved);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modalElements.prevBtn.disabled = currentImageIndex === 0;
+        modalElements.nextBtn.disabled = currentImageIndex === imagesData.length - 1;
+    }
 
-            if (impressionIndex !== -1) {
-                const impression = assessmentText.substring(impressionIndex + impressionMarker.length).trim();
-                const assessment = assessmentText.substring(0, impressionIndex).trim();
-                return { impression: impression || 'N/A', assessment: assessment || 'N/A' };
-            }
-            // Fallback for when the AI agent provides the impression in a slightly different format or not at all.
-            return { impression: 'See full assessment below.', assessment: assessmentText };
-        }
+    function updateModalButtons(isApproved) {
+        modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
+        modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
+        modalElements.approveBtn.disabled = isApproved;
+        modalElements.rejectBtn.disabled = !isApproved;
+    }
+    
+    function handleApproval(approve, index) {
+        updateCardStatus(index, approve);
+        if(index === currentImageIndex) { updateModalButtons(approve); }
+    }
+    
+    function navigateImage(direction) {
+        const newIndex = currentImageIndex + direction;
+        if (newIndex >= 0 && newIndex < imagesData.length) { openModal(newIndex); }
+    }
 
-        function openModal(index) {
-            currentImageIndex = index;
-            const image = imagesData[index];
-            modalElements.image.src = `/images/${image.filename}`;
-            modalElements.title.textContent = image.title || 'Untitled';
-            modalElements.score.textContent = image.quality_score;
-            modalElements.description.textContent = image.image_description || 'N/A';
-            const { impression, assessment } = parseAssessment(image.critical_assessment);
-            modalElements.overallImpression.textContent = impression;
-            modalElements.assessment.textContent = assessment;
-            updateModalButtons(image.is_approved);
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            modalElements.prevBtn.disabled = currentImageIndex === 0;
-            modalElements.nextBtn.disabled = currentImageIndex === imagesData.length - 1;
-        }
-
-        function updateModalButtons(isApproved) {
-            modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
-            modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
-            modalElements.approveBtn.disabled = isApproved;
-            modalElements.rejectBtn.disabled = !isApproved;
-        }
-
-        function closeModal() {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            currentImageIndex = -1;
-        }
-
-        function navigateImage(direction) {
-            const newIndex = currentImageIndex + direction;
-            if (newIndex >= 0 && newIndex < imagesData.length) {
-                openModal(newIndex);
-            }
-        }
-        
-        function handleApproval(approve, index) {
-            imagesData[index].is_approved = approve;
-            updateCardStatus(index, approve);
-            if(index === currentImageIndex) {
-                updateModalButtons(approve);
-            }
-        }
-
-        photoGrid.addEventListener('click', (event) => {
-            const card = event.target.closest('.group[data-index]');
-            if (!card) return;
-            const index = parseInt(card.dataset.index);
-            const action = event.target.closest('[data-action]')?.dataset.action;
-            
-            if (action === 'approve') {
-                event.stopPropagation();
-                handleApproval(true, index);
-            } else if (action === 'reject') {
-                event.stopPropagation();
-                handleApproval(false, index);
-            } else {
-                openModal(index);
-            }
+    function createCard(image, index) {
+        const card = document.createElement('div');
+        card.id = `card-${index}`;
+        card.className = 'bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer';
+        card.innerHTML = `<div class="relative"><div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('/images/${image.filename}');"></div><div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">Avg Score: ${image.quality_score}</div><div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 flex justify-end gap-2"><button data-action="approve" class="p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_up</span></button><button data-action="reject" class="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white"><span class="material-symbols-outlined text-xl pointer-events-none">thumb_down</span></button></div></div><div class="p-4 flex-grow flex flex-col"><h3 class="font-semibold truncate">${image.title || 'Untitled'}</h3><div class="flex items-center justify-between mt-auto pt-2"><p class="text-xs text-gray-500">Score: ${image.quality_score}</p><span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${image.is_approved ? 'bg-green-500' : 'bg-red-500'}">${image.is_approved ? 'Approved' : 'Rejected'}</span></div></div>`;
+        card.addEventListener('click', (e) => {
+            const action = e.target.closest('[data-action]')?.dataset.action;
+            if (action) { e.stopPropagation(); handleApproval(action === 'approve', index); } 
+            else { openModal(index); }
         });
+        return card;
+    }
 
-        modalElements.closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
-        modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
-        modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
-        modalElements.approveBtn.addEventListener('click', () => handleApproval(true, currentImageIndex));
-        modalElements.rejectBtn.addEventListener('click', () => handleApproval(false, currentImageIndex));
-        
-        document.getElementById('save-and-exit').addEventListener('click', async () => {
-            const button = document.getElementById('save-and-exit');
-            button.disabled = true;
-            button.textContent = 'Saving...';
-            const approvedImages = imagesData.filter(img => img.is_approved);
-            try {
-                const saveResponse = await fetch('/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ approved_images: approvedImages }),
-                });
-                if (saveResponse.ok) {
-                    button.textContent = 'Done!';
-                    await fetch('/shutdown', { method: 'POST' });
-                    setTimeout(() => window.close(), 500);
-                } else {
-                    alert('Error saving selection. Please check the console.');
-                    button.disabled = false;
-                    button.textContent = 'Save & Exit';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. The server might have shut down. You can close this tab.');
-                button.disabled = false;
-                button.textContent = 'Save & Exit';
-            }
-        });
+    imagesData.forEach((image, index) => photoGrid.appendChild(createCard(image, index)));
+    modalElements.closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modalElements.approveBtn.addEventListener('click', () => handleApproval(true, currentImageIndex));
+    modalElements.rejectBtn.addEventListener('click', () => handleApproval(false, currentImageIndex));
+    modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
+    modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
+    
+    document.getElementById('save-and-exit').addEventListener('click', async () => {
+        const button = document.getElementById('save-and-exit');
+        button.disabled = true; button.textContent = 'Saving...';
+        try {
+            const res = await fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ saved_images: imagesData }) });
+            if (res.ok) {
+                button.textContent = 'Done!';
+                await fetch('/shutdown', { method: 'POST' });
+                setTimeout(() => window.close(), 500);
+            } else { throw new Error('Save failed'); }
+        } catch (error) {
+            alert('Error. Could not save and exit.');
+            button.disabled = false; button.textContent = 'Save & Exit';
+        }
     });
+});
 </script>
 </body>
 </html>
