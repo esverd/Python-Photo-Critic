@@ -1,69 +1,79 @@
+# review_app/server.py
 import json
 import os
-from flask import Flask, jsonify, request, send_from_directory
-import logging
+import sys
+from flask import Flask, render_template, request, jsonify
 
-# Disable Flask's default logging to keep the console clean
+# Check if the correct number of command-line arguments is provided
+if len(sys.argv) != 3:
+    print("Usage: python server.py <path_to_data_file> <path_to_image_directory>")
+    sys.exit(1)
+
+# Get the file paths from command-line arguments
+TEMP_DATA_PATH = sys.argv[1]
+IMAGE_DIR_PATH = sys.argv[2]
+
+# --- Flask App Setup ---
+app = Flask(__name__, template_folder='.')
+app.config['IMAGE_DIR'] = IMAGE_DIR_PATH
+
+# Suppress Flask's default logging to keep the notebook output clean
+import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-app = Flask(__name__, static_folder='static')
 
-# In-memory data store
-IMAGE_DATA = []
-
-def load_data():
-    global IMAGE_DATA
-    try:
-        # The script now looks for the data file in the parent directory
-        with open('../temp_data.json', 'r', encoding='utf-8') as f:
-            IMAGE_DATA = json.load(f)
-    except FileNotFoundError:
-        print("Error: temp_data.json not found in the parent directory.")
-        IMAGE_DATA = []
-
+# --- Main Route to Display the Review Page ---
 @app.route('/')
 def index():
-    # Serve the HTML file as requested by the user
-    return send_from_directory('static', 'photo_browser.html')
+    """
+    Renders the main review page.
+    Reads the initial data from the JSON file created by the notebook.
+    """
+    if not os.path.exists(TEMP_DATA_PATH):
+        return "Error: Data file not found.", 404
 
-@app.route('/api/images', methods=['GET'])
-def get_images():
-    return jsonify(IMAGE_DATA)
+    with open(TEMP_DATA_PATH, 'r', encoding='utf-8') as f:
+        images_data = json.load(f)
 
-@app.route('/api/update_status/<filename>', methods=['POST'])
-def update_status(filename):
-    data = request.get_json()
-    new_status = data.get('is_approved')
+    # Pass the image data and the image directory path to the template
+    return render_template('index.html', images=images_data, image_dir=app.config['IMAGE_DIR'])
 
-    for img in IMAGE_DATA:
-        if img['filename'] == filename:
-            img['is_approved'] = new_status
-            print(f"Updated {filename}: is_approved = {new_status}")
-            return jsonify({"success": True, "message": f"Status updated for {filename}"})
 
-    return jsonify({"success": False, "message": "Image not found"}), 404
-
-def shutdown_server():
-    # This function will be called to shut down the server
-    os._exit(0)
-
-@app.route('/api/finalize', methods=['POST'])
-def finalize_selections():
-    print("Finalizing selections...")
-    approved_images = [img for img in IMAGE_DATA if img.get('is_approved', False)]
+# --- Route to Save the Final Selections ---
+@app.route('/save', methods=['POST'])
+def save_selection():
+    """
+    Receives the final, human-curated selections from the web UI,
+    saves them to 'final_selection.json', and returns a success message.
+    """
+    final_selection = request.json.get('approved_images', [])
     
-    # Save the final selection in the parent directory for the notebook to access
-    with open('../final_selection.json', 'w', encoding='utf-8') as f:
-        json.dump(approved_images, f, indent=4)
+    # Define the output path for the final selections
+    final_selection_path = os.path.join(os.path.dirname(TEMP_DATA_PATH), "final_selection.json")
+
+    with open(final_selection_path, 'w', encoding='utf-8') as f:
+        json.dump(final_selection, f, indent=2)
         
-    print(f"Saved {len(approved_images)} approved images to final_selection.json.")
-    
-    shutdown_server()
-    
-    return jsonify({"success": True, "message": "Selections finalized and server is shutting down."})
+    print(f"✅ {len(final_selection)} images approved and saved to {final_selection_path}")
+    return jsonify({"status": "success", "message": "Selection saved."})
+
+
+# --- Route to Shutdown the Server ---
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    """
+    Shuts down the Flask server. Called from the web UI after saving.
+    """
+    print("Server shutting down...")
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+    return 'Server shutting down...'
+
 
 if __name__ == '__main__':
-    load_data()
-    print("Flask server is running. Open http://127.0.0.1:5000 in your browser.")
-    app.run(port=5000, debug=False)
+    print("Starting Flask server for photo review...")
+    # Make the server accessible only from your local machine
+    app.run(host='127.0.0.1', port=5000, debug=False)
