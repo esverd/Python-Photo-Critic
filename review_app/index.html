@@ -1,6 +1,8 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
     <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B600%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
@@ -23,19 +25,19 @@
         .material-symbols-outlined {
           font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        /* Custom scrollbar for modal content */
         .modal-content::-webkit-scrollbar {
             width: 8px;
         }
         .modal-content::-webkit-scrollbar-track {
             background: #f1f1f1;
+            border-radius: 4px;
         }
         .modal-content::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #a8a8a8;
             border-radius: 4px;
         }
         .modal-content::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #888;
         }
     </style>
 </head>
@@ -56,20 +58,20 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-2">
                     <div>
                         <h2 class="text-[var(--text-primary)] text-3xl font-bold leading-tight">Photos</h2>
-                        <p class="text-[var(--text-secondary)] text-base font-normal">Click a card to see details. Approve or reject photos, then click "Save & Exit".</p>
+                        <p class="text-[var(--text-secondary)] text-base font-normal">Click a card to see details, approve/reject, and navigate. Click "Save & Exit" when done.</p>
                     </div>
                 </div>
                 <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     {% for image in images %}
-                    <div id="card-{{ loop.index0 }}" class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer" 
-                         data-approved="{{ 'true' if image.is_approved else 'false' }}" 
+                    <div id="card-{{ loop.index0 }}" class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer"
+                         data-approved="{{ 'true' if image.is_approved else 'false' }}"
+                         data-index="{{ loop.index0 }}"
                          data-details='{{ image|tojson }}'>
                         <div class="relative">
                             <div class="card-image-container w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style='background-image: url("/images/{{ image.filename }}");'></div>
                             <div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">AI Score: {{ image.quality_score }}</div>
-                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex justify-end gap-2">
-                                <button class="approve-btn p-2 rounded-full bg-green-500/80 hover:bg-green-500 text-white transition-colors" data-index="{{ loop.index0 }}"><span class="material-symbols-outlined text-xl">thumb_up</span></button>
-                                <button class="reject-btn p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors" data-index="{{ loop.index0 }}"><span class="material-symbols-outlined text-xl">thumb_down</span></button>
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                               <span class="text-white font-bold text-lg">View Details</span>
                             </div>
                         </div>
                         <div class="p-4 flex-grow flex flex-col">
@@ -87,30 +89,53 @@
     </div>
 </div>
 
-<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4">
-    <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
-        <div class="flex items-center justify-between p-4 border-b">
-            <h3 id="modal-title" class="text-xl font-semibold text-[var(--text-primary)]">Image Details</h3>
-            <button id="modal-close-btn" class="p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button>
-        </div>
-        <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-y-hidden">
-            <div class="w-full md:w-1/2 flex-shrink-0">
-                <img id="modal-image" src="" alt="Selected image" class="w-full h-full object-contain rounded-md bg-gray-100"/>
+<!-- MODAL DIALOG -->
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 transition-opacity duration-300">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative">
+        <!-- Close Button -->
+        <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200 transition-colors"><span class="material-symbols-outlined">close</span></button>
+        
+        <!-- Navigation Buttons -->
+        <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-symbols-outlined">arrow_back_ios</span></button>
+        <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
+
+        <!-- Modal Content -->
+        <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
+            <!-- Image Column -->
+            <div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center">
+                <div class="mb-4">
+                    <h3 id="modal-title" class="text-xl text-center font-semibold text-[var(--text-primary)]"></h3>
+                </div>
+                <div class="w-full h-full flex items-center justify-center">
+                    <img id="modal-image" src="" alt="Selected image" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/>
+                </div>
             </div>
+            
+            <!-- Details Column -->
             <div class="w-full md:w-1/2 flex flex-col min-h-0">
-                <div class="modal-content overflow-y-auto pr-2 space-y-4">
+                <div class="mb-4 flex justify-between items-center">
+                    <div id="modal-approval-status" class="text-lg font-bold"></div>
+                    <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-[var(--primary-color)]">AI Score: <span id="modal-score" class="ml-1 font-bold"></span></div>
+                </div>
+
+                <div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 border-t pt-4">
                     <div>
-                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Summary</h4>
-                        <p id="modal-summary" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Objective Description</h4>
-                        <p id="modal-description" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
+                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Overall Impression</h4>
+                        <p id="modal-overall-impression" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
                     </div>
                     <div>
                         <h4 class="font-bold text-lg text-[var(--text-primary)]">Critical Assessment</h4>
                         <p id="modal-assessment" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
                     </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-[var(--text-primary)]">Objective Description</h4>
+                        <p id="modal-description" class="text-[var(--text-secondary)] text-sm whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex-shrink-0 flex justify-end gap-2">
+                    <button id="modal-approve-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-green)] text-white hover:bg-green-700 transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_up</span> Approve</button>
+                    <button id="modal-reject-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-[var(--accent-red)] text-white hover:bg-red-700 transition-colors shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-base">thumb_down</span> Reject</button>
                 </div>
             </div>
         </div>
@@ -121,73 +146,125 @@
     document.addEventListener('DOMContentLoaded', function () {
         let imagesData = {{ images|tojson }};
         const modal = document.getElementById('detail-modal');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalElements = {
+            closeBtn: document.getElementById('modal-close-btn'),
+            image: document.getElementById('modal-image'),
+            title: document.getElementById('modal-title'),
+            score: document.getElementById('modal-score'),
+            approvalStatus: document.getElementById('modal-approval-status'),
+            overallImpression: document.getElementById('modal-overall-impression'),
+            assessment: document.getElementById('modal-assessment'),
+            description: document.getElementById('modal-description'),
+            prevBtn: document.getElementById('modal-prev-btn'),
+            nextBtn: document.getElementById('modal-next-btn'),
+            approveBtn: document.getElementById('modal-approve-btn'),
+            rejectBtn: document.getElementById('modal-reject-btn')
+        };
+        const photoGrid = document.getElementById('photo-grid');
+        let currentImageIndex = -1;
 
         function updateCardStatus(index, isApproved) {
             const card = document.getElementById(`card-${index}`);
+            if (!card) return;
             const badge = card.querySelector('.status-badge');
             card.dataset.approved = isApproved;
             badge.textContent = isApproved ? 'Approved' : 'Rejected';
             badge.className = `status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${isApproved ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`;
         }
 
-        function openModal(image) {
-            document.getElementById('modal-image').src = `/images/${image.filename}`;
-            document.getElementById('modal-title').textContent = image.title || 'Untitled';
-            document.getElementById('modal-summary').textContent = image.summary || 'No summary available.';
-            document.getElementById('modal-description').textContent = image.image_description || 'No description available.';
-            document.getElementById('modal-assessment').textContent = image.critical_assessment || 'No assessment available.';
+        function parseAssessment(assessmentText) {
+            if (!assessmentText) {
+                return { impression: 'N/A', assessment: 'N/A' };
+            }
+            const impressionMarker = 'Overall Impression:';
+            const impressionIndex = assessmentText.indexOf(impressionMarker);
+
+            if (impressionIndex !== -1) {
+                const impression = assessmentText.substring(impressionIndex + impressionMarker.length).trim();
+                const assessment = assessmentText.substring(0, impressionIndex).trim();
+                return { impression, assessment };
+            }
+            // Fallback if marker isn't found
+            return { impression: 'Could not parse impression.', assessment: assessmentText };
+        }
+
+        function openModal(index) {
+            currentImageIndex = index;
+            const image = imagesData[index];
+            
+            modalElements.image.src = `/images/${image.filename}`;
+            modalElements.title.textContent = image.title || 'Untitled';
+            modalElements.score.textContent = image.quality_score;
+            modalElements.description.textContent = image.image_description || 'N/A';
+
+            const { impression, assessment } = parseAssessment(image.critical_assessment);
+            modalElements.overallImpression.textContent = impression;
+            modalElements.assessment.textContent = assessment;
+
+            updateModalButtons(image.is_approved);
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            modalElements.prevBtn.disabled = currentImageIndex === 0;
+            modalElements.nextBtn.disabled = currentImageIndex === imagesData.length - 1;
+        }
+
+        function updateModalButtons(isApproved) {
+            modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
+            modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
+            modalElements.approveBtn.disabled = isApproved;
+            modalElements.rejectBtn.disabled = !isApproved;
         }
 
         function closeModal() {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            currentImageIndex = -1;
         }
 
-        document.getElementById('photo-grid').addEventListener('click', (event) => {
-            const card = event.target.closest('.group[data-details]');
-            if (card) {
-                const approveBtn = event.target.closest('.approve-btn');
-                const rejectBtn = event.target.closest('.reject-btn');
-                
-                if (approveBtn) {
-                    const index = approveBtn.dataset.index;
-                    imagesData[index].is_approved = true;
-                    updateCardStatus(index, true);
-                } else if (rejectBtn) {
-                    const index = rejectBtn.dataset.index;
-                    imagesData[index].is_approved = false;
-                    updateCardStatus(index, false);
-                } else {
-                    const details = JSON.parse(card.dataset.details);
-                    openModal(details);
+        function navigateImage(direction) {
+            if (currentImageIndex !== -1) {
+                const newIndex = currentImageIndex + direction;
+                if (newIndex >= 0 && newIndex < imagesData.length) {
+                    openModal(newIndex);
                 }
             }
-        });
+        }
+        
+        function handleApproval(approve) {
+             if (currentImageIndex !== -1) {
+                imagesData[currentImageIndex].is_approved = approve;
+                updateCardStatus(currentImageIndex, approve);
+                updateModalButtons(approve);
+            }
+        }
 
-        modalCloseBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                closeModal();
+        photoGrid.addEventListener('click', (event) => {
+            const card = event.target.closest('.group.flex-col.cursor-pointer');
+            if (card) {
+                const index = parseInt(card.dataset.index);
+                openModal(index);
             }
         });
 
+        modalElements.closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+        modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
+        modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
+        modalElements.approveBtn.addEventListener('click', () => handleApproval(true));
+        modalElements.rejectBtn.addEventListener('click', () => handleApproval(false));
+        
         document.getElementById('save-and-exit').addEventListener('click', async () => {
             const button = document.getElementById('save-and-exit');
             button.disabled = true;
             button.textContent = 'Saving...';
-
             const approvedImages = imagesData.filter(img => img.is_approved);
-            
             try {
                 const saveResponse = await fetch('/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ approved_images: approvedImages }),
                 });
-
                 if (saveResponse.ok) {
                     button.textContent = 'Done!';
                     await fetch('/shutdown', { method: 'POST' });
