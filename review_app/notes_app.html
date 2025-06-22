@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Note Taker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <style>:root{--primary-color:#1978e5;--secondary-color:#f3f4f6;--text-primary:#1f2937;--text-secondary:#6b7280;--accent-green:#10b981;--accent-red:#ef4444;}body{font-family:'Inter',sans-serif;}.material-symbols-outlined{font-variation-settings:'FILL'0,'wght'400,'GRAD'0,'opsz'24}.modal-content::-webkit-scrollbar{width:8px}.modal-content::-webkit-scrollbar-track{background:#f1f1f1;border-radius:4px}.modal-content::-webkit-scrollbar-thumb{background:#a8a8a8;border-radius:4px}.modal-content::-webkit-scrollbar-thumb:hover{background:#888}</style>
+</head>
+<body class="bg-gray-100">
+<div class="flex flex-col min-h-screen">
+    <header class="bg-white shadow-md sticky top-0 z-40"><div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">Image Note Taker</h1></div><button id="save-and-exit" class="px-4 py-2 text-sm font-semibold rounded-md bg-green-500 text-white hover:bg-green-600 shadow-sm">Save & Exit</button></div></header>
+    <main class="flex-1 p-6"><div class="max-w-7xl mx-auto">
+        <div class="mb-6"><h2 class="text-3xl font-bold">Photos</h2><p class="text-gray-500">Click a card to view details and add notes. Click "Save & Exit" when done.</p></div>
+        <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+    </div></main>
+</div>
+<div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"><div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative">
+    <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200"><span class="material-symbols-outlined">close</span></button>
+    <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_back_ios</span></button>
+    <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
+    <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
+        <div class="w-full md:w-1/2 flex-shrink-0 flex items-center justify-center"><img id="modal-image" src="" class="max-w-full max-h-full object-contain rounded-md bg-gray-100"/></div>
+        <div class="w-full md:w-1/2 flex flex-col min-h-0">
+            <h3 id="modal-title" class="text-xl font-semibold mb-2 truncate"></h3>
+            <p class="text-sm text-gray-500 mb-4">Date Taken: <span id="modal-date"></span></p>
+            <div class="flex-grow flex flex-col">
+                <label for="modal-notes" class="text-lg font-bold mb-2">Image Notes</label>
+                <textarea id="modal-notes" class="w-full flex-grow rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="Add any relevant context, location, or notes for the AI critic..."></textarea>
+            </div>
+            <div class="mt-4 flex-shrink-0 flex justify-end gap-2">
+                <button id="modal-save-note-btn" class="px-4 py-2 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow-sm flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">save</span>Save Note
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // This data is injected by the Flask server
+    let imagesData = {{ images|tojson }};
+
+    const photoGrid = document.getElementById('photo-grid');
+    const modal = document.getElementById('detail-modal');
+    const modalElements = {
+        closeBtn: document.getElementById('modal-close-btn'),
+        image: document.getElementById('modal-image'),
+        title: document.getElementById('modal-title'),
+        date: document.getElementById('modal-date'),
+        notes: document.getElementById('modal-notes'),
+        saveNoteBtn: document.getElementById('modal-save-note-btn'),
+        prevBtn: document.getElementById('modal-prev-btn'),
+        nextBtn: document.getElementById('modal-next-btn')
+    };
+    let currentImageIndex = -1;
+
+    // --- Core Functions ---
+
+    function createCard(image, index) {
+        const card = document.createElement('div');
+        card.id = `card-${index}`;
+        card.className = 'image-card bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl group flex flex-col cursor-pointer';
+        
+        // Check if a note exists to display a badge
+        const noteBadge = image.image_notes ? 
+            `<span class="note-badge absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white"><span class="material-symbols-outlined text-sm">edit_note</span>Note</span>` : 
+            `<span class="note-badge absolute top-2 left-2 hidden items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white"><span class="material-symbols-outlined text-sm">edit_note</span>Note</span>`;
+
+        card.innerHTML = `
+            <div class="relative">
+                <div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('/images/${image.filename}');"></div>
+                ${noteBadge}
+            </div>
+            <div class="p-4 flex-grow flex flex-col">
+                <h3 class="font-semibold truncate">${image.filename}</h3>
+                <p class="text-xs text-gray-500 mt-1">Date: ${image.date_taken || 'N/A'}</p>
+            </div>`;
+        
+        card.addEventListener('click', () => openModal(index));
+        return card;
+    }
+
+    function openModal(index) {
+        currentImageIndex = parseInt(index);
+        const image = imagesData[currentImageIndex];
+
+        // Populate modal with image data
+        modalElements.image.src = `/images/${image.filename}`;
+        modalElements.title.textContent = image.filename;
+        modalElements.date.textContent = image.date_taken || 'N/A';
+        modalElements.notes.value = image.image_notes || '';
+
+        // Show the modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Handle navigation buttons
+        modalElements.prevBtn.disabled = currentImageIndex === 0;
+        modalElements.nextBtn.disabled = currentImageIndex === imagesData.length - 1;
+    }
+
+    function saveNoteForCurrentImage() {
+        if (currentImageIndex === -1) return;
+        
+        const newNote = modalElements.notes.value;
+        imagesData[currentImageIndex].image_notes = newNote;
+
+        // Update the card's badge to show/hide it
+        const card = document.getElementById(`card-${currentImageIndex}`);
+        const badge = card.querySelector('.note-badge');
+        if (newNote) {
+            badge.classList.remove('hidden');
+            badge.classList.add('inline-flex');
+        } else {
+            badge.classList.add('hidden');
+            badge.classList.remove('inline-flex');
+        }
+        
+        // Give visual feedback for the save
+        const saveBtn = modalElements.saveNoteBtn;
+        saveBtn.textContent = 'Saved!';
+        setTimeout(() => { saveBtn.innerHTML = `<span class="material-symbols-outlined text-base">save</span>Save Note`; }, 1000);
+    }
+    
+    function navigateImage(direction) {
+        const newIndex = currentImageIndex + direction;
+        if (newIndex >= 0 && newIndex < imagesData.length) {
+            openModal(newIndex);
+        }
+    }
+
+    // --- Initial Page Load & Event Listeners ---
+    
+    // Create and display all photo cards
+    imagesData.forEach((image, index) => photoGrid.appendChild(createCard(image, index)));
+
+    // Modal close buttons
+    modalElements.closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.add('hidden'); });
+
+    // Modal action buttons
+    modalElements.saveNoteBtn.addEventListener('click', saveNoteForCurrentImage);
+    modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
+    modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
+
+    // Main "Save & Exit" button
+    document.getElementById('save-and-exit').addEventListener('click', async () => {
+        const button = document.getElementById('save-and-exit');
+        button.disabled = true; button.textContent = 'Saving...';
+        try {
+            const res = await fetch('/save', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                // Send the data with the correct key
+                body: JSON.stringify({ images_with_notes: imagesData }) 
+            });
+            if (res.ok) {
+                button.textContent = 'Done!';
+                // Tell the server to shut down
+                await fetch('/shutdown', { method: 'POST' });
+                // Close the window after a short delay
+                setTimeout(() => window.close(), 500);
+            } else { 
+                throw new Error('Save failed'); 
+            }
+        } catch (error) {
+            alert('Error. Could not save and exit.');
+            button.disabled = false; button.textContent = 'Save & Exit';
+        }
+    });
+});
+</script>
+</body>
+</html>
