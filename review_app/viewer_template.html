@@ -1,31 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <head>
+<html lang="en" class="">
+<head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Assessment Viewer</title>
+    <title>Photo Assessment Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --bg-secondary-color: #ffffff;
-            --text-primary-color: #1f2937;
-            --text-secondary-color: #6b7280;
-            --border-color: #e5e7eb;
-        }
-        html.dark {
-            --bg-color: #111827;
-            --bg-secondary-color: #1f2937;
-            --text-primary-color: #f9fafb;
-            --text-secondary-color: #9ca3af;
-            --border-color: #374151;
-        }
+        :root { --bg-color: #f3f4f6; --bg-secondary-color: #ffffff; --text-primary-color: #1f2937; --text-secondary-color: #6b7280; --border-color: #e5e7eb; }
+        html.dark { --bg-color: #111827; --bg-secondary-color: #1f2937; --text-primary-color: #f9fafb; --text-secondary-color: #9ca3af; --border-color: #374151; }
         body { background-color: var(--bg-color); color: var(--text-primary-color); font-family: 'Inter', sans-serif; }
-        .card, .header, .modal-main { background-color: var(--bg-secondary-color); }
-        .modal-main, .card { border: 1px solid var(--border-color); }
+        .card, .header, .modal-main, .control-section { background-color: var(--bg-secondary-color); }
+        .modal-main, .card, .control-section, input, select { border: 1px solid var(--border-color); }
         .subtle-text { color: var(--text-secondary-color); }
         .prose p { color: var(--text-secondary-color); }
-        input[type="text"] { background-color: var(--bg-secondary-color); border-color: var(--border-color); color: var(--text-primary-color); }
+        input[type="text"], select { background-color: var(--bg-secondary-color); color: var(--text-primary-color); }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .modal-content::-webkit-scrollbar { width: 8px; }
         .modal-content::-webkit-scrollbar-track { background-color: var(--bg-color); }
@@ -37,49 +27,39 @@
 <div class="flex flex-col min-h-screen">
     <header class="header shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">Photo Assessment Viewer</h1></div>
-            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                <span id="theme-icon" class="material-symbols-outlined"></span>
-            </button>
+            <div class="flex items-center gap-3"><div class="size-7 text-blue-600"><svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor"></path></svg></div><h1 class="text-xl font-semibold">Photo Assessment Dashboard</h1></div>
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" aria-label="Toggle light and dark theme"><span id="theme-icon" class="material-symbols-outlined"></span></button>
         </div>
     </header>
     
-    <div id="loader" class="text-center p-10"><p class="text-lg font-medium subtle-text">Loading images...</p></div>
+    <div id="loader" class="text-center p-10"><p class="text-lg font-medium subtle-text">Loading analysis...</p></div>
 
     <main id="main-content" class="flex-1 p-6 hidden">
         <div class="max-w-7xl mx-auto">
-            <div class="mb-6">
-                <h2 class="text-3xl font-bold">Photo Assessments</h2>
-                <p class="subtle-text">Click a card for details. Use the filters and search to explore.</p>
-                <h3 id="photo-count" class="text-lg font-medium subtle-text mt-2"></h3>
+            <div class="mb-6"><h2 class="text-3xl font-bold">Photo Assessments</h2><p class="subtle-text">Click a card for details. Use the filters, search, and sort options to explore.</p><h3 id="photo-count" class="text-lg font-medium subtle-text mt-2"></h3></div>
+            <div class="mb-4 p-4 rounded-xl control-section"><button id="toggle-chart-btn" class="font-semibold text-sm subtle-text hover:text-blue-600">Show Score Distribution</button><div id="chart-container" class="hidden mt-4"><canvas id="score-chart"></canvas></div></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="relative"><input type="text" id="search-box" title="Advanced Search: Use 'OR', quotes for exact phrases, '!' to exclude, '*' for wildcard." class="w-full pl-10 pr-10 py-2 rounded-md shadow-sm"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span><button id="clear-search-btn" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hidden" aria-label="Clear search"><span class="material-symbols-outlined">close</span></button></div>
+                <div class="flex items-center justify-start md:justify-end gap-2"><button id="share-btn" class="px-3 py-2 text-sm font-medium rounded-md control-section hover:bg-gray-100 dark:hover:bg-gray-800" title="Copy a shareable link for the current view"><span class="material-symbols-outlined text-base leading-none">share</span></button><button id="export-csv-btn" class="px-3 py-2 text-sm font-medium rounded-md control-section hover:bg-gray-100 dark:hover:bg-gray-800" title="Export current view to CSV"><span class="material-symbols-outlined text-base leading-none">download</span></button></div>
             </div>
-            <div class="mb-6 relative">
-                <input type="text" id="search-box" placeholder="Search by keyword in title, summary, etc..." class="w-full pl-10 pr-4 py-2 border rounded-md shadow-sm">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-            </div>
-            <div class="mb-6 flex gap-2" id="filter-container">
-                <button data-filter="all" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">All</button>
-                <button data-filter="approved" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Approved</button>
-                <button data-filter="rejected" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Rejected</button>
-            </div>
+            <div class="mb-6 flex flex-wrap gap-2 items-center"><div id="filter-container" class="flex gap-2"><button data-filter="all" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">All</button><button data-filter="approved" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Approved</button><button data-filter="rejected" class="filter-btn px-4 py-1.5 text-sm font-medium rounded-md shadow-sm">Rejected</button></div><div class="flex-grow"></div><div class="flex items-center gap-2"><label for="sort-select" class="text-sm font-medium subtle-text">Sort by:</label><select id="sort-select" class="text-sm rounded-md shadow-sm"><option value="default">Default</option><option value="score_desc">Score (High-Low)</option><option value="score_asc">Score (Low-High)</option><option value="date_desc">Date (New-Old)</option><option value="date_asc">Date (Old-New)</option><option value="filename_asc">Filename (A-Z)</option><option value="filename_desc">Filename (Z-A)</option></select></div></div>
             <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
         </div>
     </main>
 </div>
-
 <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4">
     <div class="modal-main rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col relative">
-        <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><span class="material-symbols-outlined">close</span></button>
-        <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_back_ios</span></button>
-        <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
+        <button id="modal-close-btn" class="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" aria-label="Close modal"><span class="material-symbols-outlined">close</span></button>
+        <button id="modal-prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50" aria-label="Previous image"><span class="material-symbols-outlined">arrow_back_ios</span></button>
+        <button id="modal-next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200/50 bg-white/50 text-gray-800 disabled:opacity-50" aria-label="Next image"><span class="material-symbols-outlined">arrow_forward_ios</span></button>
         <div class="flex-grow p-6 flex flex-col md:flex-row gap-6 overflow-hidden">
             <div class="w-full md:w-1/2 flex-shrink-0 flex flex-col items-center"><div class="mb-4 text-center"><h3 id="modal-title" class="text-xl font-semibold inline"></h3><span id="modal-counter" class="text-lg subtle-text ml-2"></span><div id="modal-approval-status" class="text-lg font-bold mt-1"></div></div><div class="w-full h-full flex items-center justify-center"><img id="modal-image" src="" class="max-w-full max-h-full object-contain rounded-md bg-gray-100 dark:bg-gray-800"/></div></div>
             <div class="w-full md:w-1/2 flex flex-col min-h-0">
                 <div class="mb-4 flex justify-end"><div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-600">Avg Score: <span id="modal-score" class="ml-1 font-bold"></span></div></div>
                 <div class="modal-content flex-grow overflow-y-auto pr-3 space-y-4 prose prose-sm max-w-none">
-                    <div><div class="flex items-center justify-between"><h4>Overall Impression</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-overall-impression" title="Copy text"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-overall-impression"></p></div>
-                    <div><div class="flex items-center justify-between"><h4>Critical Assessment</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-assessment" title="Copy text"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-assessment" class="whitespace-pre-wrap"></p></div>
-                    <div><div class="flex items-center justify-between"><h4>Objective Description</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-description" title="Copy text"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-description" class="whitespace-pre-wrap"></p></div>
+                    <div><div class="flex items-center justify-between"><h4>Overall Impression</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-overall-impression" title="Copy text" aria-label="Copy overall impression"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-overall-impression"></p></div>
+                    <div><div class="flex items-center justify-between"><h4>Critical Assessment</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-assessment" title="Copy text" aria-label="Copy critical assessment"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-assessment" class="whitespace-pre-wrap"></p></div>
+                    <div><div class="flex items-center justify-between"><h4>Objective Description</h4><button class="copy-btn p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" data-clipboard-target="modal-description" title="Copy text" aria-label="Copy objective description"><span class="material-symbols-outlined text-base">content_copy</span></button></div><p id="modal-description" class="whitespace-pre-wrap"></p></div>
                 </div>
             </div>
         </div>
@@ -90,67 +70,173 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof imagesData === 'undefined') {
-        document.body.innerHTML = `<div class="p-10 text-center"><h1 class="text-2xl font-bold text-red-600">Error</h1><p class="subtle-text">Could not load image data. The 'imagesData' variable was not found. Please ensure data.js exists.</p></div>`;
+        document.body.innerHTML = `<div class="p-10 text-center"><h1 class="text-2xl font-bold text-red-600">Error</h1><p class="subtle-text">Could not load image data. Please ensure data.js exists.</p></div>`;
         return;
     }
 
-    const loader = document.getElementById('loader');
-    const mainContent = document.getElementById('main-content');
-    const photoGrid = document.getElementById('photo-grid');
-    const photoCountElement = document.getElementById('photo-count');
-    const searchBox = document.getElementById('search-box');
-    const filterContainer = document.getElementById('filter-container');
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const modal = document.getElementById('detail-modal');
-    const modalElements = {
-        closeBtn: document.getElementById('modal-close-btn'), image: document.getElementById('modal-image'),
-        title: document.getElementById('modal-title'), counter: document.getElementById('modal-counter'),
-        approvalStatus: document.getElementById('modal-approval-status'), score: document.getElementById('modal-score'),
-        overallImpression: document.getElementById('modal-overall-impression'), assessment: document.getElementById('modal-assessment'),
-        description: document.getElementById('modal-description'), prevBtn: document.getElementById('modal-prev-btn'),
-        nextBtn: document.getElementById('modal-next-btn')
-    };
-    let currentImageIndex = -1;
-    let visibleImages = [];
-
-    function applyTheme(theme) {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            themeIcon.textContent = 'light_mode';
-        } else {
-            document.documentElement.classList.remove('dark');
-            themeIcon.textContent = 'dark_mode';
+    const appState = { filter: 'all', search: '', sort: 'default' };
+    const elements = {
+        loader: document.getElementById('loader'), mainContent: document.getElementById('main-content'),
+        photoGrid: document.getElementById('photo-grid'), photoCount: document.getElementById('photo-count'),
+        searchBox: document.getElementById('search-box'), clearSearchBtn: document.getElementById('clear-search-btn'),
+        filterContainer: document.getElementById('filter-container'), sortSelect: document.getElementById('sort-select'),
+        shareBtn: document.getElementById('share-btn'), exportCsvBtn: document.getElementById('export-csv-btn'),
+        toggleChartBtn: document.getElementById('toggle-chart-btn'), chartContainer: document.getElementById('chart-container'),
+        scoreChartCanvas: document.getElementById('score-chart'), themeToggle: document.getElementById('theme-toggle'),
+        themeIcon: document.getElementById('theme-icon'), modal: document.getElementById('detail-modal'),
+        modalElements: {
+            closeBtn: document.getElementById('modal-close-btn'), image: document.getElementById('modal-image'),
+            title: document.getElementById('modal-title'), counter: document.getElementById('modal-counter'),
+            approvalStatus: document.getElementById('modal-approval-status'), score: document.getElementById('modal-score'),
+            overallImpression: document.getElementById('modal-overall-impression'), assessment: document.getElementById('modal-assessment'),
+            description: document.getElementById('modal-description'), prevBtn: document.getElementById('modal-prev-btn'),
+            nextBtn: document.getElementById('modal-next-btn')
         }
-        localStorage.setItem('photoViewerTheme', theme);
+    };
+    let visibleImages = [], scoreChart = null, initialImages = [...imagesData];
+
+    function applyAll() {
+        const filteredByStatus = applyStatusFilter(initialImages);
+        const searchedData = applySearchFilter(filteredByStatus);
+        const sortedData = applySorting(searchedData);
+        renderGrid(sortedData);
+        updateURLHashFromState();
+    }
+
+    function applyStatusFilter(data) {
+        return data.filter(img => appState.filter === 'all' || (appState.filter === 'approved' && img.is_approved) || (appState.filter === 'rejected' && !img.is_approved));
+    }
+
+    function applySearchFilter(data) {
+        const searchTerm = appState.search.trim().toLowerCase();
+        if (!searchTerm) return data;
+        const phraseRegex = /"([^"]+)"/g;
+        const phrases = [...searchTerm.matchAll(phraseRegex)].map(match => match[1]);
+        const remainingSearch = searchTerm.replace(phraseRegex, '').trim();
+        const orGroups = remainingSearch.split(/ or /gi).map(group => group.trim().split(/\s+/).filter(Boolean));
+
+        return data.filter(image => {
+            const searchableText = [image.title, image.summary, image.image_description, image.filename].join(' ').toLowerCase();
+            if (phrases.length > 0 && !phrases.every(phrase => searchableText.includes(phrase))) return false;
+            if (orGroups.every(g => g.length === 0) && phrases.length > 0) return true;
+            return orGroups.some(group => {
+                const positiveTerms = group.filter(t => !t.startsWith('!')).map(t => new RegExp(t.replace(/\*/g, '.*?')));
+                const negativeTerms = group.filter(t => t.startsWith('!')).map(t => t.substring(1).replace(/\*/g, '.*?'));
+                return positiveTerms.every(re => re.test(searchableText)) && !negativeTerms.some(term => term && new RegExp(term).test(searchableText));
+            });
+        });
+    }
+
+    function applySorting(data) {
+        const [key, dir] = appState.sort.split('_');
+        if (key === 'default') return initialImages.filter(img => data.includes(img));
+        const sorted = [...data].sort((a, b) => {
+            let valA, valB;
+            switch(key) {
+                case 'score': valA = a.quality_score || 0; valB = b.quality_score || 0; break;
+                case 'date': valA = new Date(a.date_taken || 0); valB = new Date(b.date_taken || 0); break;
+                case 'filename': valA = a.filename.toLowerCase(); valB = b.filename.toLowerCase(); break;
+                default: return 0;
+            }
+            if (valA < valB) return -1;
+            if (valA > valB) return 1;
+            return 0;
+        });
+        return dir === 'desc' ? sorted.reverse() : sorted;
+    }
+
+    function renderGrid(data) {
+        elements.photoGrid.innerHTML = '';
+        visibleImages = [];
+        data.forEach(image => {
+            const originalIndex = imagesData.indexOf(image);
+            elements.photoGrid.appendChild(createCard(image, originalIndex));
+            visibleImages.push({ originalIndex });
+        });
+        elements.photoCount.textContent = `Showing ${visibleImages.length} of ${imagesData.length} images`;
+    }
+
+    function renderScoreChart() {
+        const scores = imagesData.map(img => Math.floor(img.quality_score || 0));
+        const scoreCounts = {};
+        for (let i = 0; i <= 10; i++) { scoreCounts[i] = 0; }
+        scores.forEach(score => { if (scoreCounts.hasOwnProperty(score)) scoreCounts[score]++; });
+        if (scoreChart) scoreChart.destroy();
+        const textColor = getComputedStyle(document.body).getPropertyValue('--text-secondary-color');
+        scoreChart = new Chart(elements.scoreChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(scoreCounts),
+                datasets: [{ label: '# of Photos', data: Object.values(scoreCounts), backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 }]
+            },
+            options: { scales: { y: { ticks: { color: textColor, stepSize: Math.ceil(Math.max(...Object.values(scoreCounts)) / 5) || 1 } }, x: { ticks: { color: textColor } } } }
+        });
+    }
+
+    function exportToCSV() {
+        const headers = ["Filename", "Title", "Date Taken", "Status", "Avg Score", "Summary"];
+        const dataToExport = applySorting(applySearchFilter(applyStatusFilter(initialImages)));
+        const rows = dataToExport.map(img => {
+            const status = img.is_approved ? 'Approved' : 'Rejected';
+            const row = [img.filename, img.title, img.date_taken, status, img.quality_score, img.summary];
+            return row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',');
+        });
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(',')].concat(rows).join('\n');
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", "photo_assessment_export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
     
-    function preloadImage(direction) {
-        const currentVisibleIndex = visibleImages.findIndex(img => img.originalIndex === currentImageIndex);
-        const nextVisibleIndex = currentVisibleIndex + direction;
-        if (nextVisibleIndex >= 0 && nextVisibleIndex < visibleImages.length) {
-            const nextOriginalIndex = visibleImages[nextVisibleIndex].originalIndex;
-            const img = new Image();
-            img.src = imagesData[nextOriginalIndex].filename;
-        }
+    function updateURLHashFromState() {
+        const params = new URLSearchParams();
+        if (appState.filter !== 'all') params.set('filter', appState.filter);
+        if (appState.search) params.set('search', appState.search);
+        if (appState.sort !== 'default') params.set('sort', appState.sort);
+        const hash = params.toString().replace(/%22/g, '"');
+        const newUrl = hash ? `${window.location.pathname}#${hash}` : window.location.pathname + window.location.search;
+        history.replaceState(null, '', newUrl);
+    }
+    
+    function loadStateFromURLHash() {
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        appState.filter = params.get('filter') || 'all';
+        appState.search = params.get('search') || '';
+        appState.sort = params.get('sort') || 'default';
+        elements.searchBox.value = appState.search;
+        elements.sortSelect.value = appState.sort;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isMatch = btn.dataset.filter === appState.filter;
+            btn.classList.toggle('bg-blue-600', isMatch);
+            btn.classList.toggle('text-white', isMatch);
+            btn.classList.toggle('bg-white', !isMatch);
+            btn.classList.toggle('text-gray-700', !isMatch);
+        });
+        elements.clearSearchBtn.classList.toggle('hidden', !appState.search);
+    }
+    
+    function initializeApp() {
+        loadStateFromURLHash();
+        const savedTheme = localStorage.getItem('photoViewerTheme') || 'light';
+        applyTheme(savedTheme);
+        renderScoreChart();
+        applyAll();
+        elements.loader.classList.add('hidden');
+        elements.mainContent.classList.remove('hidden');
     }
 
-    function parseAssessment(text) {
-        if (!text || typeof text !== 'string') return { impression: 'N/A', assessment: 'N/A' };
-        const marker = 'Overall Impression:';
-        const index = text.toUpperCase().indexOf(marker.toUpperCase());
-        if (index !== -1) {
-            const impression = text.substring(index + marker.length).trim();
-            const assessment = text.substring(0, index).trim();
-            return { impression: impression || 'N/A', assessment: assessment || 'N/A' };
-        }
-        return { impression: 'See full assessment below.', assessment: text };
+    function applyTheme(theme) {
+        if (theme === 'dark') { document.documentElement.classList.add('dark'); elements.themeIcon.textContent = 'light_mode'; }
+        else { document.documentElement.classList.remove('dark'); elements.themeIcon.textContent = 'dark_mode'; }
+        localStorage.setItem('photoViewerTheme', theme);
+        if (scoreChart) renderScoreChart();
     }
 
     function createCard(image, originalIndex) {
         const card = document.createElement('div');
         card.className = 'card rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl flex flex-col cursor-pointer';
-        card.dataset.approved = image.is_approved;
         card.dataset.originalIndex = originalIndex;
         const thumbnailUrl = `thumbnails/${image.filename}`;
         card.innerHTML = `<div class="relative"><div class="w-full bg-center bg-no-repeat aspect-[3/2] bg-cover" style="background-image: url('${thumbnailUrl}');"></div><div class="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-semibold">Avg Score: ${image.quality_score}</div></div><div class="p-4 flex-grow flex flex-col"><h3 class="font-semibold truncate">${image.title || 'Untitled'}</h3><div class="flex items-center justify-between mt-auto pt-2"><p class="text-xs subtle-text">Score: ${image.quality_score}</p><span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${image.is_approved ? 'bg-green-500' : 'bg-red-500'}">${image.is_approved ? 'Approved' : 'Rejected'}</span></div></div>`;
@@ -161,28 +247,28 @@ document.addEventListener('DOMContentLoaded', function () {
     function openModal(originalIndex) {
         currentImageIndex = originalIndex;
         const image = imagesData[currentImageIndex];
-        modalElements.image.src = image.filename;
-        modalElements.title.textContent = image.title || 'Untitled';
-        modalElements.score.textContent = image.quality_score;
-        modalElements.description.textContent = image.image_description || 'N/A';
+        elements.modalElements.image.src = image.filename;
+        elements.modalElements.title.textContent = image.title || 'Untitled';
+        elements.modalElements.score.textContent = image.quality_score;
+        elements.modalElements.description.textContent = image.image_description || 'N/A';
         const { impression, assessment } = parseAssessment(image.critical_assessment);
-        modalElements.overallImpression.textContent = impression;
-        modalElements.assessment.textContent = assessment;
+        elements.modalElements.overallImpression.textContent = impression;
+        elements.modalElements.assessment.textContent = assessment;
         const isApproved = image.is_approved;
-        modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
-        modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        elements.modalElements.approvalStatus.textContent = isApproved ? 'Approved' : 'Rejected';
+        elements.modalElements.approvalStatus.className = `text-lg font-bold ${isApproved ? 'text-green-600' : 'text-red-600'}`;
+        elements.modal.classList.remove('hidden');
+        elements.modal.classList.add('flex');
         const currentVisibleIndex = visibleImages.findIndex(img => img.originalIndex === originalIndex);
-        modalElements.prevBtn.disabled = currentVisibleIndex <= 0;
-        modalElements.nextBtn.disabled = currentVisibleIndex >= visibleImages.length - 1;
-        modalElements.counter.textContent = `(${currentVisibleIndex + 1} / ${visibleImages.length})`;
+        elements.modalElements.prevBtn.disabled = currentVisibleIndex <= 0;
+        elements.modalElements.nextBtn.disabled = currentVisibleIndex >= visibleImages.length - 1;
+        elements.modalElements.counter.textContent = `(${currentVisibleIndex + 1} / ${visibleImages.length})`;
         preloadImage(1);
         preloadImage(-1);
     }
 
     function navigateImage(direction) {
-        if (modal.classList.contains('hidden')) return;
+        if (elements.modal.classList.contains('hidden')) return;
         const currentVisibleIndex = visibleImages.findIndex(img => img.originalIndex === currentImageIndex);
         const newVisibleIndex = currentVisibleIndex + direction;
         if (newVisibleIndex >= 0 && newVisibleIndex < visibleImages.length) {
@@ -190,83 +276,46 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function applyFilters() {
-        const statusFilter = document.querySelector('.filter-btn.bg-blue-600').dataset.filter;
-        const searchTerm = searchBox.value.toLowerCase();
-        visibleImages = [];
-        photoGrid.innerHTML = '';
-        imagesData.forEach((image, index) => {
-            const searchableText = [image.title, image.summary, image.image_description, image.filename].join(' ').toLowerCase();
-            const statusMatch = statusFilter === 'all' || (statusFilter === 'approved' && image.is_approved) || (statusFilter === 'rejected' && !image.is_approved);
-            const searchMatch = searchTerm === "" || searchableText.includes(searchTerm);
-            if (statusMatch && searchMatch) {
-                photoGrid.appendChild(createCard(image, index));
-                visibleImages.push({ originalIndex: index });
-            }
-        });
-        photoCountElement.textContent = `Showing ${visibleImages.length} of ${imagesData.length} images`;
+    function preloadImage(direction) {
+        const currentVisibleIndex = visibleImages.findIndex(img => img.originalIndex === currentImageIndex);
+        const nextVisibleIndex = currentVisibleIndex + direction;
+        if (nextVisibleIndex >= 0 && nextVisibleIndex < visibleImages.length) {
+            const nextOriginalIndex = visibleImages[nextVisibleIndex].originalIndex;
+            const img = new Image();
+            img.src = imagesData[nextOriginalIndex].filename;
+        }
     }
-
-    function initializeApp() {
-        const savedTheme = localStorage.getItem('photoViewerTheme') || 'light';
-        applyTheme(savedTheme);
-        const savedFilter = localStorage.getItem('photoViewerFilter') || 'all';
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('bg-blue-600', 'text-white');
-            if (btn.dataset.filter === savedFilter) {
-                btn.classList.add('bg-blue-600', 'text-white');
-            } else {
-                btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
-            }
-        });
-        applyFilters();
-        loader.classList.add('hidden');
-        mainContent.classList.remove('hidden');
+    
+    function parseAssessment(text) {
+        if (!text || typeof text !== 'string') return { impression: 'N/A', assessment: 'N/A' };
+        const marker = 'AI CRITICAL ASSESSMENT';
+        const impressionMarker = 'SUMMARY (from AI critique)';
+        const index = text.toUpperCase().indexOf(marker);
+        const impressionIndex = text.toUpperCase().indexOf(impressionMarker);
+        if (index !== -1) {
+            const assessment = text.substring(index + marker.length).split("AI OBJECTIVE DESCRIPTION")[0].trim();
+            const impression = text.substring(impressionIndex + impressionMarker.length).split("AI CRITICAL ASSESSMENT")[0].trim();
+            return { impression: impression || 'N/A', assessment: assessment || 'N/A' };
+        }
+        return { impression: 'N/A', assessment: text };
     }
 
     // --- Event Listeners ---
-    themeToggle.addEventListener('click', () => {
-        applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
-    });
-    document.getElementById('detail-modal').addEventListener('click', function(e) {
-        const copyBtn = e.target.closest('.copy-btn');
-        if (copyBtn) {
-            const targetId = copyBtn.dataset.clipboardTarget;
-            const textToCopy = document.getElementById(targetId).textContent;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const icon = copyBtn.querySelector('.material-symbols-outlined');
-                icon.textContent = 'done';
-                setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
-            }).catch(err => console.error('Failed to copy: ', err));
-        }
-    });
-    document.addEventListener('keydown', function(event) {
-        if (modal.classList.contains('hidden')) return;
-        switch (event.key) {
-            case 'ArrowLeft': navigateImage(-1); break;
-            case 'ArrowRight': navigateImage(1); break;
-            case 'Escape': modal.classList.add('hidden'); break;
-        }
-    });
-    modalElements.closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-    modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
-    modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
-    filterContainer.addEventListener('click', (e) => {
-        const button = e.target.closest('.filter-btn');
-        if (button) {
-            const filter = button.dataset.filter;
-            localStorage.setItem('photoViewerFilter', filter);
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
-            });
-            button.classList.add('bg-blue-600', 'text-white');
-            button.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100');
-            applyFilters();
-        }
-    });
-    searchBox.addEventListener('input', applyFilters);
+    elements.themeToggle.addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+    elements.searchBox.addEventListener('input', () => { appState.search = elements.searchBox.value; applyAll(); });
+    elements.clearSearchBtn.addEventListener('click', () => { elements.searchBox.value = ''; appState.search = ''; applyAll(); });
+    elements.filterContainer.addEventListener('click', (e) => { const btn = e.target.closest('.filter-btn'); if (btn) { appState.filter = btn.dataset.filter; document.querySelectorAll('.filter-btn').forEach(b => { b.classList.remove('bg-blue-600', 'text-white'); b.classList.add('bg-white', 'subtle-text'); }); btn.classList.add('bg-blue-600', 'text-white'); btn.classList.remove('bg-white', 'subtle-text'); applyAll(); }});
+    elements.sortSelect.addEventListener('change', () => { appState.sort = elements.sortSelect.value; applyAll(); });
+    elements.shareBtn.addEventListener('click', () => { navigator.clipboard.writeText(window.location.href).then(() => alert('Shareable link for the current view has been copied to your clipboard!')).catch(() => alert('Failed to copy link.')); });
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
+    elements.toggleChartBtn.addEventListener('click', () => { elements.chartContainer.classList.toggle('hidden'); elements.toggleChartBtn.textContent = elements.chartContainer.classList.contains('hidden') ? 'Show Score Distribution' : 'Hide Score Distribution'; });
+    window.addEventListener('hashchange', () => { loadStateFromURLHash(); applyAll(); });
+    document.addEventListener('keydown', (e) => { if (!elements.modal.classList.contains('hidden')) { switch (e.key) { case 'ArrowLeft': elements.modalElements.prevBtn.click(); break; case 'ArrowRight': elements.modalElements.nextBtn.click(); break; case 'Escape': elements.modalElements.closeBtn.click(); break; } } });
+    elements.modal.addEventListener('click', e => { if (e.target === elements.modal) elements.modalElements.closeBtn.click(); });
+    elements.modalElements.closeBtn.addEventListener('click', () => elements.modal.classList.add('hidden'));
+    elements.modalElements.prevBtn.addEventListener('click', () => navigateImage(-1));
+    elements.modalElements.nextBtn.addEventListener('click', () => navigateImage(1));
+    elements.modal.addEventListener('click', (e) => { const btn = e.target.closest('.copy-btn'); if (btn) { const target = document.getElementById(btn.dataset.clipboardTarget); navigator.clipboard.writeText(target.textContent).then(() => { const icon = btn.querySelector('.material-symbols-outlined'); icon.textContent = 'done'; setTimeout(() => { icon.textContent = 'content_copy'; }, 1500); }); } });
     
     initializeApp();
 });
