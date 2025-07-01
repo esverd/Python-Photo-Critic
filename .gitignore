@@ -167,3 +167,5 @@ cython_debug/
 #.idea/
 
 
+critique_results.json
+web_content_status.json
